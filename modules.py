@@ -2,6 +2,16 @@ import numpy as np
 from typing import Callable, Optional, Union
 
 
+def softmax(x):
+    exp_x = np.exp(x)
+    return exp_x / np.sum(exp_x, axis=1, keepdims=True)
+
+def init_xavier_weights(d_input, d_output):
+    return np.random.randn(d_output, d_input) * np.sqrt(
+            2.0 / (d_input + d_output)
+        ) 
+
+
 class Sigmoid:
     def _sigmoid(self, x: np.ndarray) -> np.ndarray:
         return 1 / (1 + np.exp(-x))
@@ -118,4 +128,67 @@ class LinearLayer:
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         return self.forward(x)
+
+
+class InputEmbeddings:
+    pass
+
+
+class PositionalEncoding:
+    pass
+
+
+class MultiHeadAttention:
+    def __init__(self, d_model, num_heads):
+        assert d_model % num_heads == 0, "d_model must be divisble by num_heads"
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_k = d_model // num_heads # using d_k also for d_v, and d_q as they are equal
+        self.W_q = LinearLayer(d_model, self.d_k) 
+        self.W_k = LinearLayer(d_model, self.d_k)
+        self.W_v = LinearLayer(d_model, self.d_k)
+        self.W_o = LinearLayer(d_model, d_model)
+    
+    def scaled_dot_product_attention(self, Q, K, V):
+        # TODO masking?
+        attention_scores = (Q @ K.T) / np.sqrt(self.d_k)
+        attention_probs = softmax(attention_scores)
+        output = attention_probs @ V 
+        return output
+    
+    def split_heads(self, x):
+        Q = self.W_q(x)
+        K = self.W_k(x)
+        V = self.W_v(x)
+        return Q, K, V     
+        
+    def combine_heads(self, x):
+        pass
+    
+    def forward(self, x):
+        Q, K, V = self.split_heads(x)
+        attention_output = self.scaled_dot_product_attention(Q, K, V)
+        output = self.combine_heads(attention_output)
+        return output
+    
+    
+class FeedForwardLayer:
+    def __init__(self, d_model, d_ff):
+        self.layer1 = LinearLayer(d_model, d_ff)
+        self.activation = ReLU()
+        self.layer2 = LinearLayer(d_ff, d_model)
+        
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.activation(x)
+        return self.layer(x)
+    
+
+
+class LayerNormalization:
+    pass
+
+
+class ResidualConnection:
+    pass
 
