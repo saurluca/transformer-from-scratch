@@ -156,19 +156,18 @@ class MultiHeadAttention:
         output = attention_probs @ V 
         return output
     
-    def split_heads(self, x):
+        
+    def forward(self, x):
+        # split heads TODO
         Q = self.W_q(x)
         K = self.W_k(x)
         V = self.W_v(x)
-        return Q, K, V     
-        
-    def combine_heads(self, x):
-        pass
-    
-    def forward(self, x):
-        Q, K, V = self.split_heads(x)
+
+        # calculate attention
         attention_output = self.scaled_dot_product_attention(Q, K, V)
-        output = self.combine_heads(attention_output)
+        
+        # combine heads TODO
+        output = attention_output
         return output
     
     
